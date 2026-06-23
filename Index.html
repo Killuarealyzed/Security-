@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%);
+            color: #e5e5e5;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            padding: 0 25px 30px;
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: #3b82f6;
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 24px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #94a3b8;
+            font-size: 16px;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(42, 42, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 14px;
+            color: #e5e5e5;
+        }
+
+        tr:hover td {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Product Cards */
+        .product-card {
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            border-color: #3b82f6;
+            transform: translateX(8px);
+        }
+
+        .product-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .product-details {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .product-calories {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #3b82f6;
+        }
+
+        /* Buttons */
+        .btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Checklist */
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checklist-item:hover {
+            padding-left: 8px;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .checklist-item.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 24px;
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .warning-box-title {
+            color: #ef4444;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-box ul {
+            list-style: none;
+            padding-left: 28px;
+        }
+
+        .warning-box li {
+            position: relative;
+            margin: 6px 0;
+            font-size: 14px;
+            color: #fca5a5;
+        }
+
+        .warning-box li::before {
+            content: "⚠";
+            position: absolute;
+            left: -20px;
+        }
+
+        /* Tip Box */
+        .tip-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .tip-box-title {
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tip-box ul {
+            list-style: none;
+            padding-left: 28px;
+        }
+
+        .tip-box li {
+            position: relative;
+            margin: 6px 0;
+            font-size: 14px;
+            color: #6ee7b7;
+        }
+
+        .tip-box li::before {
+            content: "💡";
+            position: absolute;
+            left: -20px;
+        }
+
+        /* Input Fields */
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            background: rgba(26, 26, 26, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .quick-action-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .quick-action-btn i {
+            font-size: 28px;
+            color: #3b82f6;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .quick-action-btn span {
+            font-size: 14px;
+            color: #e5e5e5;
+        }
+
+        /* Section Cards */
+        .section-card {
+            background: rgba(26, 26, 26, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-card h3 {
+            color: #3b82f6;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .section-card p, .section-card li {
+            font-size: 14px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .section-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .section-card li {
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .section-card li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">🎯 My Dashboard</div>
+        <div class="nav-item active" onclick="showSection('dashboard')">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </div>
+        <div class="nav-item" onclick="showSection('nutrition')">
+            <i class="fas fa-utensils"></i>
+            <span>Питание</span>
+        </div>
+        <div class="nav-item" onclick="showSection('hair')">
+            <i class="fas fa-cut"></i>
+            <span>Волосы</span>
+        </div>
+        <div class="nav-item" onclick="showSection('care')">
+            <i class="fas fa-shower"></i>
+            <span>Дезодорант</span>
+        </div>
+        <div class="nav-item" onclick="showSection('notes')">
+            <i class="fas fa-sticky-note"></i>
+            <span>Заметки</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboard" class="section active">
+            <div class="header">
+                <h1>Привет, Егор! 👋</h1>
+                <p id="currentDate"></p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📊 Прогресс веса</div>
+                    <div class="progress-container">
+                        <div class="progress-label">
+                            <span>Текущий: <strong id="currentWeight">60.6</strong> кг</span>
+                            <span>Цель: <strong>58.0</strong> кг</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="weightProgress" style="width: 40%"></div>
+                        </div>
+                        <p style="margin-top: 10px; font-size: 13px; color: #94a3b8;">
+                            Осталось: <span id="weightLeft">2.6</span> кг
+                        </p>
+                    </div>
+                    <button class="btn" onclick="updateWeight()">
+                        <i class="fas fa-plus"></i> Обновить вес
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">📈 Статистика</div>
+                    <div class="grid-2">
+                        <div class="stat-card">
+                            <div class="stat-value" id="daysActive">12</div>
+                            <div class="stat-label">Дней активно</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="weightLost">0.0</div>
+                            <div class="stat-label">Сброшено кг</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📉 График веса</div>
+                <div class="chart-container">
+                    <canvas id="weightChart"></canvas>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="quick-action-btn" onclick="showSection('nutrition')">
+                    <i class="fas fa-utensils"></i>
+                    <span>Мой рацион</span>
+                </div>
+                <div class="quick-action-btn" onclick="showSection('hair')">
+                    <i class="fas fa-cut"></i>
+                    <span>Укладка волос</span>
+                </div>
+                <div class="quick-action-btn" onclick="showSection('care')">
+                    <i class="fas fa-shower"></i>
+                    <span>Средства ухода</span>
+                </div>
+                <div class="quick-action-btn" onclick="showSection('notes')">
+                    <i class="fas fa-list"></i>
+                    <span>Список покупок</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nutrition Section -->
+        <div id="nutrition" class="section">
+            <div class="header">
+                <h1>🍽️ Питание</h1>
+                <p>Мой ежедневный рацион и цены</p>
+            </div>
+
+            <div class="grid-2">
+                <!-- Breakfast -->
+                <div class="card">
+                    <div class="card-title">🌅 Завтрак</div>
+                    
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1488477181946-630106e9f6de" alt="Yogurt" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Греческий йогурт</div>
+                            <div class="product-details">200г • Без сахара</div>
+                        </div>
+                        <div class="product-calories">120 ккал</div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1622484211159-1a7cd70a8f62" alt="Cottage Cheese" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Творожный сырок</div>
+                            <div class="product-details">1 шт • Без глазури</div>
+                        </div>
+                        <div class="product-calories">180 ккал</div>
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                        <strong style="color: #3b82f6;">Итого завтрак:</strong> 300 ккал
+                    </div>
+                </div>
+
+                <!-- Lunch -->
+                <div class="card">
+                    <div class="card-title">🍗 Обед</div>
+                    
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1585238342024-78d38753a275" alt="Buckwheat" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Гречка</div>
+                            <div class="product-details">150г (варёная)</div>
+                        </div>
+                        <div class="product-calories">165 ккал</div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d" alt="Chicken" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Куриная грудка</div>
+                            <div class="product-details">200г • Запечённая</div>
+                        </div>
+                        <div class="product-calories">330 ккал</div>
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px;">
+                        <strong style="color: #3b82f6;">Итого обед:</strong> 495 ккал
+                    </div>
+                </div>
+            </div>
+
+            <!-- KBZHU Table -->
+            <div class="card">
+                <div class="card-title">📊 КБЖУ за день</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Параметр</th>
+                            <th>Завтрак</th>
+                            <th>Обед</th>
+                            <th>Итого</th>
+                            <th>Норма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Калории</td>
+                            <td>300</td>
+                            <td>495</td>
+                            <td><strong>795</strong></td>
+                            <td>1800</td>
+                        </tr>
+                        <tr>
+                            <td>Белки (г)</td>
+                            <td>20</td>
+                            <td>60</td>
+                            <td><strong>80</strong></td>
+                            <td>120</td>
+                        </tr>
+                        <tr>
+                            <td>Жиры (г)</td>
+                            <td>5</td>
+                            <td>8</td>
+                            <td><strong>13</strong></td>
+                            <td>60</td>
+                        </tr>
+                        <tr>
+                            <td>Углеводы (г)</td>
+                            <td>25</td>
+                            <td>35</td>
+                            <td><strong>60</strong></td>
+                            <td>200</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Prices -->
+            <div class="card">
+                <div class="card-title">💰 Цены в магазинах (Питер)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Пятёрочка</th>
+                            <th>Перекрёсток</th>
+                            <th>Лента</th>
+                            <th>Где дешевле</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Греческий йогурт (500г)</td>
+                            <td>120₽</td>
+                            <td>140₽</td>
+                            <td>115₽</td>
+                            <td style="color: #10b981;"><strong>Лента</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Творог (300г)</td>
+                            <td>90₽</td>
+                            <td>110₽</td>
+                            <td>95₽</td>
+                            <td style="color: #10b981;"><strong>Пятёрочка</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Гречка (1кг)</td>
+                            <td>85₽</td>
+                            <td>95₽</td>
+                            <td>80₽</td>
+                            <td style="color: #10b981;"><strong>Лента</strong></td>
+                        </tr>
+                        <tr>
+                            <td>Куриная грудка (1кг)</td>
+                            <td>280₽</td>
+                            <td>310₽</td>
+                            <td>270₽</td>
+                            <td style="color: #10b981;"><strong>Лента</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 8px;">
+                    <strong style="color: #10b981;">💡 Экономия:</strong> Покупая в Ленте и Пятёрочке, экономишь ~300₽ в неделю!
+                </div>
+            </div>
+
+            <!-- Forbidden Foods -->
+            <div class="warning-box">
+                <div class="warning-box-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Запрещённые продукты
+                </div>
+                <ul>
+                    <li>Глютен (хлеб, макароны, выпечка)</li>
+                    <li>Сахар (сладости, газировка, соки)</li>
+                    <li>Соль (чипсы, сухарики, фастфуд)</li>
+                    <li>Энергетики (сахар, кофеин, вред для сердца)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Hair Care Section -->
+        <div id="hair" class="section">
+            <div class="header">
+                <h1>💇 Уход за волосами</h1>
+                <p>Пошаговая инструкция идеальной укладки</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">📝 Пошаговая инструкция</div>
+                    <div class="section-card">
+                        <h3>Подготовка</h3>
+                        <ul>
+                            <li>Помой голову</li>
+                            <li>Промакни полотенцем (не три!)</li>
+                            <li>Волосы должны быть 70% сухими</li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <h3>Сушка феном</h3>
+                        <ul>
+                            <li>Надень узкую насадку</li>
+                            <li>Наклонись вниз (головой к полу)</li>
+                            <li>Суши корни, взъерошивая пальцами</li>
+                            <li>В конце продуй холодным воздухом 10 сек</li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <h3>Укладка</h3>
+                        <ul>
+                            <li>Пудра на корни (для объёма)</li>
+                            <li>Паста на кончики (для текстуры)</li>
+                            <li>Только руками, без расчёски!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🛍️ Мои средства</div>
+                    
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be" alt="Hairdryer" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Фен</div>
+                            <div class="product-details">Мощный, с холодным воздухом</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1608248597279-f99d160bfbc8" alt="Estel Paste" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Estel паста</div>
+                            <div class="product-details">ST M4 Matt • Горошина</div>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <img src="https://images.unsplash.com/photo-1629198189590-1943e86cde74" alt="Volume Powder" class="product-image">
+                        <div class="product-info">
+                            <div class="product-name">Пудра для объёма</div>
+                            <div class="product-details">Estel Alpha Homme</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="warning-box-title">
+                    <i class="fas fa-times-circle"></i>
+                    Частые ошибки
+                </div>
+                <ul>
+                    <li>Слишком много пасты (волосы как солома)</li>
+                    <li>Расчёсывание после пасты (всё слипается)</li>
+                    <li>Паста на корни (выглядит жирно)</li>
+                    <li>Сушка без холодного воздуха (объём падает)</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <div class="tip-box-title">
+                    <i class="fas fa-lightbulb"></i>
+                    Лайфхаки
+                </div>
+                <ul>
+                    <li>Наклоняй голову вперёд для мгновенного объёма у корней</li>
+                    <li>Используй только остатки пасты на ладонях для корней</li>
+                    <li>Холодный воздух цементирует объём — не пропускай этот шаг!</li>
+                    <li>Если переборщил с пастой — помой голову и начни заново</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Deodorant Section -->
+        <div id="care" class="section">
+            <div class="header">
+                <h1>🚿 Дезодорант</h1>
+                <p>Без запаха, максимальная защита</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">✅ Мой выбор</div>
+                    <div class="product-card" style="flex-direction: column; text-align: center;">
+                        <img src="https://images.unsplash.com/photo-1611930022073-b9aeb7848a9b" alt="Nivea Men" class="product-image" style="width: 150px; height: 150px;">
+                        <div style="margin-top: 16px;">
+                            <div class="product-name" style="font-size: 18px;">Nivea Men "Невидимая защита"</div>
+                            <div style="margin: 12px 0; color: #94a3b8;">
+                                <span style="display: inline-block; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 4px; margin: 4px;">Без запаха</span>
+                                <span style="display: inline-block; background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 12px; border-radius: 4px; margin: 4px;">48-72 часа</span>
+                                <span style="display: inline-block; background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 4px 12px; border-radius: 4px; margin: 4px;">Антиперспирант</span>
+                            </div>
+                            <div style="text-align: left; background: rgba(26, 26, 26, 0.6); padding: 16px; border-radius: 8px; margin-top: 12px;">
+                                <strong style="color: #3b82f6;">Почему этот:</strong>
+                                <ul style="list-style: none; margin-top: 8px; color: #94a3b8;">
+                                    <li style="padding: 6px 0;">✓ Полностью без запаха</li>
+                                    <li style="padding: 6px 0;">✓ Не оставляет следов</li>
+                                    <li style="padding: 6px 0;">✓ Реально блокирует пот</li>
+                                    <li style="padding: 6px 0;">✓ Не конфликтует с духами</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">📖 Как правильно наносить</div>
+                    <div class="section-card">
+                        <h3>Пошаговая инструкция</h3>
+                        <ol style="color: #94a3b8; line-height: 2; padding-left: 20px;">
+                            <li>Прими душ, вытрись насухо</li>
+                            <li>Подожди 5 минут (кожа должна быть абсолютно сухой)</li>
+                            <li>Нанеси 2-3 движения на каждую подмышку</li>
+                            <li>Дай высохнуть 1-2 минуты</li>
+                            <li>Одевайся</li>
+                        </ol>
+                    </div>
+                    <div class="tip-box">
+                        <div class="tip-box-title">
+                            <i class="fas fa-moon"></i>
+                            PRO совет
+                        </div>
+                        <p style="color: #6ee7b7; margin-top: 8px;">
+                            Наноси антиперспирант <strong>на ночь перед сном</strong>! 
+                            Ночью потовые железы менее активны, средство лучше впитается 
+                            и будет работать в 10 раз эффективнее.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🔄 Альтернативы</div>
+                <div class="grid-3">
+                    <div class="product-card" style="flex-direction: column;">
+                        <img src="https://images.unsplash.com/photo-1611930022073-b9aeb7848a9b" alt="Dove" class="product-image">
+                        <div style="margin-top: 12px; text-align: center;">
+                            <div class="product-name">Dove Men+Care</div>
+                            <div class="product-details" style="margin: 8px 0;">Без запаха</div>
+                            <div style="color: #3b82f6; font-weight: 600;">~250₽</div>
+                        </div>
+                    </div>
+                    <div class="product-card" style="flex-direction: column;">
+                        <img src="https://images.unsplash.com/photo-1556228720-195a672e8a03" alt="Vichy" class="product-image">
+                        <div style="margin-top: 12px; text-align: center;">
+                            <div class="product-name">Vichy Homme</div>
+                            <div class="product-details" style="margin: 8px 0;">7 дней защиты</div>
+                            <div style="color: #3b82f6; font-weight: 600;">~900₽</div>
+                        </div>
+                    </div>
+                    <div class="product-card" style="flex-direction: column;">
+                        <img src="https://images.unsplash.com/photo-1620916297399-5e3f7d46e0a6" alt="Dry Dry" class="product-image">
+                        <div style="margin-top: 12px; text-align: center;">
+                            <div class="product-name">Dry Dry</div>
+                            <div class="product-details" style="margin: 8px 0;">Для сильного потоотделения</div>
+                            <div style="color: #3b82f6; font-weight: 600;">~1800₽</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div id="notes" class="section">
+            <div class="header">
+                <h1>📝 Заметки и списки</h1>
+                <p>Список покупок и цели</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">🛒 Список покупок</div>
+                    <div id="shoppingList">
+                        <div class="checklist-item">
+                            <input type="checkbox" id="item1">
+                            <label for="item1">Греческий йогурт</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="item2">
+                            <label for="item2">Творог</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="item3">
+                            <label for="item3">Гречка (1кг)</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="item4">
+                            <label for="item4">Куриная грудка</label>
+                        </div>
+                        <div class="checklist-item">
+                            <input type="checkbox" id="item5">
+                            <label for="item5">Пудра для волос Estel</label>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="margin-top: 16px; width: 100%;" onclick="addShoppingItem()">
+                        <i class="fas fa-plus"></i> Добавить
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🎯 Цели</div>
+                    <div class="section-card">
+                        <h3>На неделю</h3>
+                        <ul>
+                            <li>Сбросить 0.5 кг</li>
+                            <li>Не есть запрещёнку</li>
+                            <li>Купить пудру для волос</li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <h3>На месяц</h3>
+                        <ul>
+                            <li>Достичь веса 58 кг</li>
+                            <li>Научиться идеальной укладке</li>
+                            <li>Сэкономить 3000₽ на продуктах</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Расходы за месяц</div>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const date = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = date.toLocaleDateString('ru-RU', options);
+            
+            // Initialize charts
+            initWeightChart();
+            initExpensesChart();
+            
+            // Load saved data
+            loadData();
+            
+            // Setup checklist
+            setupChecklist();
+        });
+
+        // Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show target section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active to clicked nav item
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // Weight Chart
+        function initWeightChart() {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Неделя 1', 'Неделя 2', 'Неделя 3', 'Неделя 4', 'Сейчас'],
+                    datasets: [{
+                        label: 'Вес (кг)',
+                        data: [62.0, 61.5, 61.0, 60.8, 60.6],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Expenses Chart
+        function initExpensesChart() {
+            const ctx = document.getElementById('expensesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Продукты', 'Уход', 'Другое'],
+                    datasets: [{
+                        data: [68, 22, 10],
+                        backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#e5e5e5', padding: 20 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update Weight
+        function updateWeight() {
+            const newWeight = prompt('Введите новый вес (кг):', '60.6');
+            if (newWeight) {
+                const weight = parseFloat(newWeight);
+                document.getElementById('currentWeight').textContent = weight.toFixed(1);
+                
+                const startWeight = 62.0;
+                const goalWeight = 58.0;
+                const progress = ((startWeight - weight) / (startWeight - goalWeight)) * 100;
+                document.getElementById('weightProgress').style.width = Math.min(progress, 100) + '%';
+                document.getElementById('weightLeft').textContent = (weight - goalWeight).toFixed(1);
+                
+                // Save to localStorage
+                localStorage.setItem('currentWeight', weight.toFixed(1));
+            }
+        }
+
+        // Add Shopping Item
+        function addShoppingItem() {
+            const item = prompt('Что добавить в список?');
+            if (item) {
+                const list = document.getElementById('shoppingList');
+                const div = document.createElement('div');
+                div.className = 'checklist-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="item${Date.now()}">
+                    <label for="item${Date.now()}">${item}</label>
+                `;
+                list.appendChild(div);
+            }
+        }
+
+        // Setup Checklist
+        function setupChecklist() {
+            document.querySelectorAll('.checklist-item input').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    this.closest('.checklist-item').classList.toggle('completed', this.checked);
+                });
+            });
+        }
+
+        // Load Data from localStorage
+        function loadData() {
+            const savedWeight = localStorage.getItem('currentWeight');
+            if (savedWeight) {
+                document.getElementById('currentWeight').textContent = savedWeight;
+            }
+        }
+
+        // Save data before closing
+        window.addEventListener('beforeunload', function() {
+            // Auto-save functionality
+        });
+    </script>
+</body>
+</html>
+
